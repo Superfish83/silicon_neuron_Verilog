@@ -1,25 +1,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def f_orig(t, V, W, I):
+def f_orig(V, W, I):
     dVdt = 0.04 * V**2 + 5 * V + 140 - W + I
     dWdt = 0.02 * (0.2 * V - W)
     return dVdt, dWdt
-def f_approx(t, V, W, I):
-    # fixed-point arithmetic 기준, Shifting-friendly한 계수들을 이용해 근사
-    dVdt = 0.04 * V**2 + 5 * V + 140 - W + I
-    dWdt = 1/64 * (1/4 * V - W)
+def f_approx(V, W, I):
+    # Piecewise linear approximation of the original model
+    k1 = 0.375
+    k2 = 0.75
+    k3 = 11
+    dVdt = k2*( abs(V+62.5+k3) + abs(V+62.5-k3) ) +k1*abs(V+62.5) - 4*k2*k3 - W + I
+    dWdt = 0.02 * (0.2 * V - W)
     return dVdt, dWdt
 
 def approxTest():
-    I0 = 2.0
-    dI = 1.0
-    I_list = np.arange(I0, I0 + 9 * dI, dI)
+    I0 = 1.0
+    dI = 2.0
+    I_list = np.arange(I0, I0 + 6 * dI, dI)
 
     plt.figure(figsize=(10, 6))
 
     for i in range(len(I_list)):
-        plt.subplot(3, 3, i + 1)
+        plt.subplot(3, 2, i + 1)
         testUnderI(I_list[i], [f_orig, f_approx])
 
     plt.suptitle('Approximation Test for Neuron Model', fontsize=16)
@@ -40,17 +43,16 @@ def testUnderI(I, f_list):
         V[0] = -65.0
         W[0] = -15.0
 
-        # Test #1: Original Model
         for i in range(len(T)-1):
             I_t = I if T[i] > 30 else 0.0
 
-            dVdt, dWdt = f(T[i], V[i], W[i], I_t)
+            dVdt, dWdt = f(V[i], W[i], I_t)
             V[i+1] = V[i] + dVdt * dt
             W[i+1] = W[i] + dWdt * dt
 
-            if V[i+1] >= 30:
+            if V[i+1] >= 32:
                 V[i+1] = -65.0
-                W[i+1] += 2.0
+                W[i+1] += 5.0
 
         if k == 0:
             plt.plot(T, V, color='blue')
