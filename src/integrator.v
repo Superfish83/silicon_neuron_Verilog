@@ -1,5 +1,5 @@
 module integrator #(
-    parameter N
+    parameter N = 32
 )(
     input wire [N-1:0] I,
     input wire signed [N-1:0] w_old, v_old,

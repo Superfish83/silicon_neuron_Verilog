@@ -56,7 +56,7 @@ module neuron #(
 endmodule
 
 module impulse_generator #(
-    parameter HOLD_TIME // impulse 신호를 몇 클럭 동안 유지할지
+    parameter HOLD_TIME = 8 // impulse 신호를 몇 클럭 동안 유지할지
 )(
     input wire clk,
     input wire reset,
@@ -79,7 +79,7 @@ module impulse_generator #(
                 holdctr <= holdctr - 1;
             end
             else begin
-                synout <= 0'b0;
+                synout <= 1'b0;
             end
         end
     end
