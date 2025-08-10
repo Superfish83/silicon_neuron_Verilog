@@ -1,9 +1,9 @@
 module integrator #(
-    parameter N
+    parameter WIDTH // number of precision bits
 )(
-    input wire [N-1:0] I,
-    input wire signed [N-1:0] w_old, v_old,
-    output reg signed [N-1:0] w_new, v_new,
+    input wire [WIDTH-1:0] I,
+    input wire signed [WIDTH-1:0] w_old, v_old,
+    output reg signed [WIDTH-1:0] w_new, v_new,
     output reg fire
 );
     // ** Neuron model: Izhikevich model (Quadratic model) **
@@ -12,20 +12,20 @@ module integrator #(
 
 
     // Function for fixed-point multiplication
-    function signed [N-1:0] mult(
-        input signed [N-1:0] a, b
+    function signed [WIDTH-1:0] mult(
+        input signed [WIDTH-1:0] a, b
     );
-        reg [2*N-1:0] result;
+        reg [2*WIDTH-1:0] result;
 
         begin
             result = a*b;
-            mult = result[3*N/2-1 : N/2];
+            mult = result[3*WIDTH/2-1 : WIDTH/2];
         end
     endfunction
 
     // Multiply by dt
-    function signed [N-1:0] mul_dt(
-        input signed [N-1:0] a
+    function signed [WIDTH-1:0] mul_dt(
+        input signed [WIDTH-1:0] a
     );
         begin
             mul_dt = a >>> 3; // dt = 1/8 [ms]
@@ -33,8 +33,8 @@ module integrator #(
     endfunction
 
     // Naive numerical integration using Euler's method (최적화 x)
-    reg signed [N-1:0] v_tmp, w_tmp;
-    wire signed [N-1:0] v_th = 32'h0020_0000; // 32 [mV]
+    reg signed [WIDTH-1:0] v_tmp, w_tmp;
+    wire signed [WIDTH-1:0] v_th = 32'h0020_0000; // 32 [mV]
     always @(I, w_old, v_old) begin
 
         // v' = (0.04 * v^2) + 5v + 140 - w + I

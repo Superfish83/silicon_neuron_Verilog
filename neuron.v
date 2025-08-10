@@ -1,26 +1,27 @@
 `define MAX_SYNIN_LEN 10000
 
+// Data is prcessed in 32-bit chunks, parametrized by WIDTH.
 module neuron #(
-    parameter N = 32
+    parameter WIDTH = 32  // number of precision bits
 )(
     input wire clk,
     input wire reset,
     //input wire [MAX_SYNIN_LEN-1:0] synin,
-    input wire [N-1:0] I,
+    input wire [WIDTH-1:0] I,
     output wire synout,
-    output wire signed [N-1:0] vout // 테스트용
+    output wire signed [WIDTH-1:0] vout // 테스트용
 );
-    //reg [N-1:0] I; // sum of synaptic input (어떻게 계산할지 미정)
-    reg signed [N-1:0] v;
-    reg signed [N-1:0] w;
+    //reg [WIDTH-1:0] I; // sum of synaptic input (어떻게 계산할지 미정)
+    reg signed [WIDTH-1:0] v;
+    reg signed [WIDTH-1:0] w;
     assign vout = v; // 테스트용
 
-    wire signed [N-1:0] v_new;
-    wire signed [N-1:0] w_new;
+    wire signed [WIDTH-1:0] v_new;
+    wire signed [WIDTH-1:0] w_new;
     wire fire;
 
     integrator #(
-        .N(N)
+        .WIDTH(WIDTH)
     ) integrator_inst (
         .I(I),
         .w_old(w),
