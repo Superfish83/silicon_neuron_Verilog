@@ -1,23 +1,23 @@
 module IZH_neuron #(
-    parameter WIDTH = 20,
+    parameter V_WIDTH = 20,
     parameter FR_WIDTH = 11
 )(
     input wire clk,
     input wire reset,
-    input wire [WIDTH-1:0] synin,
+    input wire [V_WIDTH-1:0] synin,
     output wire synout,
-    output wire signed [WIDTH-1:0] vout // 테스트용
+    output wire signed [V_WIDTH-1:0] vout // 테스트용
 );
-    reg signed [WIDTH-1:0] v;
-    reg signed [WIDTH-1:0] w;
+    reg signed [V_WIDTH-1:0] v;
+    reg signed [V_WIDTH-1:0] w;
     assign vout = v; // 테스트용
 
-    wire signed [WIDTH-1:0] v_new;
-    wire signed [WIDTH-1:0] w_new;
+    wire signed [V_WIDTH-1:0] v_new;
+    wire signed [V_WIDTH-1:0] w_new;
     wire fire;
 
-    IZH_integrator #(
-        .WIDTH(WIDTH),
+    IZH_integrator_approx #(
+        .V_WIDTH(V_WIDTH),
         .FR_WIDTH(FR_WIDTH)
     ) integrator_inst (
         .I(synin),

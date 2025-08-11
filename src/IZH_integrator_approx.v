@@ -1,4 +1,4 @@
-module IZH_integrator #(
+module IZH_integrator_approx #(
     parameter V_WIDTH = 20,
     parameter FR_WIDTH = 11
 )(
@@ -31,16 +31,48 @@ module IZH_integrator #(
         end
     endfunction
 
-    // Naive numerical integration using Euler's method (최적화 x)
+    function signed [V_WIDTH-1:0] div4(
+        input signed [V_WIDTH-1:0] a
+    );
+        begin
+            div4 = a >>> 2;
+        end
+    endfunction
+    
+    function signed [V_WIDTH-1:0] div8(
+        input signed [V_WIDTH-1:0] a
+    );
+        begin
+            div8 = a >>> 3;
+        end
+    endfunction
+
+    function signed [V_WIDTH-1:0] abs(
+        input signed [V_WIDTH-1:0] a
+    );
+        begin
+            abs = a[V_WIDTH-1] ? -a : a;
+        end
+    endfunction
+
+    // Fourth-order Piecewise-Linear Approximation (H. Soleimani, A. Ahmadi)
+    // - https://ieeexplore.ieee.org/abstract/document/6268301/
     reg signed [V_WIDTH-1:0] v_tmp, w_tmp;
     wire signed [V_WIDTH-1:0] v_th = (32 << FR_WIDTH); // 32 [mV]
     always @(I, w_old, v_old) begin
 
-        // v' = (0.04 * v^2) + 5v + 140 - w + I
-        v_tmp = v_old
-                    + mult(mul_dt(v_old), mult(v_old, ((2621 << FR_WIDTH) >> 16))) // 0.04 * v^2
-                    + mult(v_old, mul_dt(5 << FR_WIDTH)) // 5 * v
-                    + mul_dt((140 << FR_WIDTH) - w_old + I);
+        // v' - (I - w) = 0.75 * (|x+73.5| + |x+51.5|) + 0.375 * |x+62.5| - 33
+        //    = 3 * [ {(|x+73.5| + |x+51.5|) >> 2} + { |x+62.5| >> 3 } - 11 ]
+        //    = 3 * ( |x/4 + 18.375| + |x/4 + 12.875| + |x/8 + 7.8125| - 11 )
+        v_tmp = v_old + mul_dt(
+                    mult((
+                        (-11 << FR_WIDTH)
+                        + abs(div4(v_old) + ((4704 << FR_WIDTH) >> 8))
+                        + abs(div4(v_old) + ((3296 << FR_WIDTH) >> 8))
+                        + abs(div8(v_old) + ((2000 << FR_WIDTH) >> 8))
+                    ), (3 << FR_WIDTH)) 
+                    + (I - w_old)
+                );
 
         // w' = 0.004v - 0.02w
         w_tmp = w_old + mul_dt(
