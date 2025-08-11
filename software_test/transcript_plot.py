@@ -5,9 +5,9 @@ from approxTest import f_orig
 
 def compare_plot():
     num_lines = 1600
-    dt = 1/8 #ms
+    dt = 1/4 #ms
     T = np.arange(0, num_lines * dt, dt)
-    I = 15.0
+    I = 8.0
 
     V1 = get_v_from_f(T, dt, I)
     V2 = get_v_from_transcript(num_lines)
