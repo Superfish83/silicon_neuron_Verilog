@@ -31,7 +31,7 @@ def approxTest():
 
 # 두 모델 f1과 f2에 따른 수치적분 결과를 plot해서 비교
 def testUnderI(I, f_list):
-    dt = 1/8 #ms
+    dt = 1/4 #ms
     T = np.arange(0, 300, dt)
 
     V = np.zeros_like(T)
@@ -44,7 +44,7 @@ def testUnderI(I, f_list):
         W[0] = -15.0
 
         for i in range(len(T)-1):
-            I_t = I if T[i] > 30 else 0.0
+            I_t = 10 if T[i] >= 100 and T[i] < 140 else 0.0
 
             dVdt, dWdt = f(V[i], W[i], I_t)
             V[i+1] = V[i] + dVdt * dt
