@@ -1,1 +1,7 @@
-// 이곳에 1차과제 제출물이 들어갈 전체 Main 모듈 작성
+module SNN(
+    input logic clk,
+    input logic reset
+);
+
+
+endmodule
