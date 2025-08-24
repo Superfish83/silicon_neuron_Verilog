@@ -7,6 +7,7 @@ module network_proc #(
 )(
     input logic clk,
     input logic reset,
+    input logic start,
     input logic input_occurred,
     input logic [$clog2(SR_DEPTH)-1:0] input_index,
     output logic input_ack,
