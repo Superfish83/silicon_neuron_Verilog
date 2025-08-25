@@ -14,7 +14,7 @@ module sram #(
 );
     logic signed [WIDTH-1:0] memory [0:DEPTH-1]; // SRAM memory array
 
-    always @(posedge clk, posedge reset) begin
+    always @(posedge clk or posedge reset) begin
         if (reset) begin
             integer i;
             for (i = 0; i < DEPTH; i = i + 1) begin
