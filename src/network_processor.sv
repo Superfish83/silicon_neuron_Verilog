@@ -36,8 +36,6 @@ module network_processor #(
         .input_index(input_index),
 
         .input_ack(input_ack),
-        .output_occurred(output_occurred),
-        .output_index(output_index),
 
         .c_neuron_index(c_neuron_index),
         .c_synapse_index(c_synapse_index),

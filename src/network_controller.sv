@@ -23,9 +23,6 @@ module network_controller #(
     output logic input_ack, // 1: the presynaptic spike input was been registered to the controller
                             // 0: the controller was busy handling another spike input
 
-    output logic output_occurred, // 1: a spike occured in one of the postsynaptic neuron, 0: no spike
-    output logic [$clog2(NR_DEPTH)-1:0] output_index, // the index of the postsynaptic neuron
-
     output logic [$clog2(NR_DEPTH)-1:0] c_neuron_index,  // [control] SRAM access index
     output logic [$clog2(SR_DEPTH)-1:0] c_synapse_index, // [control] SRAM access index
     output logic c_neuron_we, // [control] neuron SRAM write enable
