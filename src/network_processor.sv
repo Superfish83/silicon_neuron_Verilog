@@ -52,8 +52,8 @@ module network_processor #(
     logic [SR_WIDTH-1:0] synapse_read;
 
     sram #(
-        .DATA_WIDTH(NR_WIDTH),
-        .ADDR_WIDTH($clog2(NR_DEPTH)),
+        .WIDTH(NR_WIDTH),
+        .DEPTH(NR_DEPTH),
         .RESET_VALUE({(20'(-65)<<11),(20'(-12)<<11),(16'b0)}) // Todo: resolve hardcoded reset value
     ) sram_neuron (
         .clk(clk),
@@ -65,8 +65,8 @@ module network_processor #(
     );
 
     sram #(
-        .DATA_WIDTH(SR_WIDTH),
-        .ADDR_WIDTH($clog2(SR_DEPTH)),
+        .WIDTH(SR_WIDTH),
+        .DEPTH(SR_DEPTH),
         .RESET_VALUE(0)
     ) sram_synapse (
         .clk(clk),
