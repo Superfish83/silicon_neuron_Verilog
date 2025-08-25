@@ -18,9 +18,9 @@ module sram #(
         if (reset) begin
             integer i;
             for (i = 0; i < DEPTH; i = i + 1) begin
-                memory[i] = RESET_VALUE; // Reset all memory locations to RESET_VALUE
+                memory[i] <= RESET_VALUE; // Reset all memory locations to RESET_VALUE
             end
-            word = RESET_VALUE;
+            word <= RESET_VALUE;
         end
         else begin
             if (write_enable) begin
