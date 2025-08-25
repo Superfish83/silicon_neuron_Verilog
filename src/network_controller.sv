@@ -17,22 +17,21 @@ module network_controller #(
     input logic reset,
     input logic start,
 
-    input logic input_occurred, // 1: a spike occured in one of the presynaptic neuron
-                                // 0: no spike
+    input logic input_occurred, // 1: a spike occured in one of the presynaptic neuron, 0: no spike
     input logic [$clog2(SR_DEPTH)-1:0] input_index, // the index of the presynaptic neuron
 
     output logic input_ack, // 1: the presynaptic spike input was been registered to the controller
                             // 0: the controller was busy handling another spike input
-    output logic output_occurred, // 1: a spike occured in one of the postsynaptic neuron
-                                  // 0: no spike
+
+    output logic output_occurred, // 1: a spike occured in one of the postsynaptic neuron, 0: no spike
     output logic [$clog2(NR_DEPTH)-1:0] output_index, // the index of the postsynaptic neuron
 
     output logic [$clog2(NR_DEPTH)-1:0] c_neuron_index,  // [control] SRAM access index
     output logic [$clog2(SR_DEPTH)-1:0] c_synapse_index, // [control] SRAM access index
     output logic c_neuron_we, // [control] neuron SRAM write enable
                               //         (synapse SRAM is read-only for now.)
-    output logic c_input // [control] 0: neuron update module is working
-                         //           1: neuron input module is working
+    output logic c_accumulate // [control] 0: neuron updator is working
+                              //           1: neuron accumulator is working
 );
     c_state state = IDLE;
 
@@ -40,8 +39,9 @@ module network_controller #(
     // elapsed time in the simulated neural network (지금까지 neuron들이 몇 step씩 update되었는지)
 
     reg phase; // 0: Read SRAM, 1: Write SRAM
-    reg [$clog2(NR_DEPTH)-1:0] i_upd; // time multiplexing index for update module
-    reg [$clog2(NR_DEPTH)-1:0] i_inp; // time multiplexing index for input module
+    reg [$clog2(NR_DEPTH)-1:0] i_proc; // time multiplexing index for neuron processing
+    reg [$clog2(NR_DEPTH)-1:0] i_accu; // time multiplexing index for neuron accumulation
+
 
     always @(posedge clk, posedge reset) begin
         if (reset) begin
@@ -61,7 +61,7 @@ module network_controller #(
         else if (state == PROC_NEURON || state == PROC_INPUT) begin
             // (1) Set write enable signal
             c_neuron_we <= phase;
-            c_neuron_index <= (state == PROC_INPUT) ? i_inp : i_upd;
+            c_neuron_index <= (state == PROC_INPUT) ? i_accu : i_proc;
 
 
             // (2-1) Update phase
@@ -69,13 +69,13 @@ module network_controller #(
 
             // (2-2) Update time multiplexing index
             if (state == PROC_NEURON && phase==1) begin
-                i_upd <= i_upd + 1;
-                if (i_upd == (MAX_NETWORK_TIME-1)) begin
+                i_proc <= i_proc + 1;
+                if (i_proc == (MAX_NETWORK_TIME-1)) begin
                     network_time <= network_time + 1;
                 end
             end
             if (state == PROC_INPUT && phase==1) begin
-                i_inp <= i_inp + 1;
+                i_accu <= i_accu + 1;
             end
 
 
@@ -84,7 +84,7 @@ module network_controller #(
                 if(phase == 1) begin
                     c_synapse_index <= input_index;
                     state <= PROC_INPUT;
-                    i_inp <= 0;
+                    i_accu <= 0;
                     input_ack <= 1;
                 end
                 else begin
@@ -93,7 +93,7 @@ module network_controller #(
             end
 
             // (3-2) state transition: PROC_INPUT -> PROC_NEURON
-            else if (state == PROC_INPUT && i_inp == (MAX_NETWORK_TIME-1) && phase == 1) begin
+            else if (state == PROC_INPUT && i_accu == (MAX_NETWORK_TIME-1) && phase == 1) begin
                 if (input_occurred) begin
                     c_synapse_index <= input_index;
                     state <= PROC_INPUT;
