@@ -19,21 +19,22 @@ module network_controller #(
 
     input logic input_occurred, // 1: a spike occured in one of the presynaptic neuron, 0: no spike
     input logic [$clog2(SR_DEPTH)-1:0] input_index, // the index of the presynaptic neuron
-
+    
     output logic input_ack, // 1: the presynaptic spike input was been registered to the controller
                             // 0: the controller was busy handling another spike input
 
-    output logic [$clog2(NR_DEPTH)-1:0] c_neuron_index,  // [control] SRAM access index
-    output logic [$clog2(SR_DEPTH)-1:0] c_synapse_index, // [control] SRAM access index
+    output logic [$clog2(NR_DEPTH)-1:0] c_neuron_index, 
+    // [control] SRAM access index
+    output logic [$clog2(SR_DEPTH)-1:0] c_synapse_index,
+    // [control] SRAM access index
     output logic c_neuron_we, // [control] neuron SRAM write enable
                               //         (synapse SRAM is read-only for now.)
-    output logic c_accumulate // [control] 0: neuron updator is working
+    output logic c_accumulate, // [control] 0: neuron updator is working
                               //           1: neuron accumulator is working
+    output logic [$clog2(MAX_NETWORK_TIME)-1:0] network_time
+    // [control] elapsed time in the simulated neural network (지금까지 neuron들이 몇 step씩 update되었는지)
 );
-    c_state state = IDLE;
-
-    reg [$clog2(MAX_NETWORK_TIME)-1:0] network_time;
-    // elapsed time in the simulated neural network (지금까지 neuron들이 몇 step씩 update되었는지)
+    c_state state;
 
     reg phase; // 0: Read SRAM, 1: Write SRAM
     reg [$clog2(NR_DEPTH)-1:0] i_proc; // time multiplexing index for neuron processing

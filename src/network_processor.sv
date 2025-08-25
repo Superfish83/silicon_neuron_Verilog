@@ -19,7 +19,8 @@ module network_processor #(
 
     output logic input_ack,
     output logic output_occurred,
-    output logic [$clog2(NR_DEPTH)-1:0] output_index
+    output logic [$clog2(NR_DEPTH)-1:0] output_index,
+    output logic [$clog2(MAX_NETWORK_TIME)-1:0] network_time
 );
     logic [$clog2(NR_DEPTH)-1:0] c_neuron_index;
     logic [$clog2(SR_DEPTH)-1:0] c_synapse_index;
@@ -28,7 +29,13 @@ module network_processor #(
 
 
     // (1) Controller (Finite State Machine)
-    network_controller controller (
+    network_controller #(
+        .NR_WIDTH(NR_WIDTH),
+        .NR_DEPTH(NR_DEPTH),
+        .SR_WIDTH(SR_WIDTH),
+        .SR_DEPTH(SR_DEPTH),
+        .MAX_NETWORK_TIME(MAX_NETWORK_TIME)
+    ) controller (
         .clk(clk),
         .reset(reset),
         .start(start),
@@ -40,7 +47,9 @@ module network_processor #(
         .c_neuron_index(c_neuron_index),
         .c_synapse_index(c_synapse_index),
         .c_neuron_we(c_neuron_we),
-        .c_accumulate(c_accumulate)
+        .c_accumulate(c_accumulate),
+        
+        .network_time(network_time)
     );
 
     // (2) SRAMs storing neuron states and synaptic weights
