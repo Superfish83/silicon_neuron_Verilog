@@ -16,9 +16,11 @@ module sram #(
 
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            integer i;
-            for (i = 0; i < DEPTH; i = i + 1) begin
-                memory[i] <= RESET_VALUE; // Reset all memory locations to RESET_VALUE
+            integer i, j;
+            for (i = 0; i < DEPTH / 16; i = i + 1) begin
+                for (j = 0; j < 16; j = j + 1) begin
+                    memory[i*16 + j] <= RESET_VALUE; // Reset all memory locations to RESET_VALUE
+                end
             end
             word <= RESET_VALUE;
         end
