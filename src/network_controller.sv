@@ -1,9 +1,9 @@
 typedef enum logic [1:0] {
     IDLE,
-    PROC_NEURON, // The module is processing neurons
-                 // (in time-multiplexed manner)
-    PROC_INPUT  // The module is processing synaptic inputs for neurons
-                 // (in time-multiplexed manner)
+    PROC, // The module is processing neuron dynamics
+            // (in time-multiplexed manner)
+    ACCU  // The module is processing synaptic input accumulation for neurons
+            // (in time-multiplexed manner)
 } c_state;
 
 module network_controller #(
@@ -36,6 +36,10 @@ module network_controller #(
 );
     c_state state;
 
+    reg [$clog2(MAX_NETWORK_TIME)-1:0] network_time_counter;
+    assign network_time = network_time_counter;
+    assign c_accumulate = (state == ACCU);
+
     reg phase; // 0: Read SRAM, 1: Write SRAM
     reg [$clog2(NR_DEPTH)-1:0] i_proc; // time multiplexing index for neuron processing
     reg [$clog2(NR_DEPTH)-1:0] i_accu; // time multiplexing index for neuron accumulation
@@ -44,44 +48,44 @@ module network_controller #(
     always @(posedge clk, posedge reset) begin
         if (reset) begin
             state <= IDLE;
-            network_time <= 0;
+            network_time_counter <= 0;
 
             input_ack <= 0;
             c_neuron_we <= 0;
         end
         else if (state == IDLE && start) begin
-            state <= PROC_NEURON;
+            state <= PROC;
             phase <= 0;
 
             input_ack <= 0;
             c_neuron_we <= 0;
         end
-        else if (state == PROC_NEURON || state == PROC_INPUT) begin
+        else if (state == PROC || state == ACCU) begin
             // (1) Set write enable signal
             c_neuron_we <= phase;
-            c_neuron_index <= (state == PROC_INPUT) ? i_accu : i_proc;
+            c_neuron_index <= (state == ACCU) ? i_accu : i_proc;
 
 
             // (2-1) Update phase
             phase <= ~phase;
 
             // (2-2) Update time multiplexing index
-            if (state == PROC_NEURON && phase==1) begin
+            if (state == PROC && phase==1) begin
                 i_proc <= i_proc + 1;
                 if (i_proc == (MAX_NETWORK_TIME-1)) begin
-                    network_time <= network_time + 1;
+                    network_time_counter <= network_time_counter + 1;
                 end
             end
-            if (state == PROC_INPUT && phase==1) begin
+            if (state == ACCU && phase==1) begin
                 i_accu <= i_accu + 1;
             end
 
 
-            // (3-1) state transition: PROC_NEURON -> PROC_INPUT
-            if (state == PROC_NEURON && input_occurred) begin
+            // (3-1) state transition: PROC -> ACCU
+            if (state == PROC && input_occurred) begin
                 if(phase == 1) begin
                     c_synapse_index <= input_index;
-                    state <= PROC_INPUT;
+                    state <= ACCU;
                     i_accu <= 0;
                     input_ack <= 1;
                 end
@@ -90,15 +94,15 @@ module network_controller #(
                 end
             end
 
-            // (3-2) state transition: PROC_INPUT -> PROC_NEURON
-            else if (state == PROC_INPUT && i_accu == (MAX_NETWORK_TIME-1) && phase == 1) begin
+            // (3-2) state transition: ACCU -> PROC
+            else if (state == ACCU && i_accu == (MAX_NETWORK_TIME-1) && phase == 1) begin
                 if (input_occurred) begin
                     c_synapse_index <= input_index;
-                    state <= PROC_INPUT;
+                    state <= PROC;
                     input_ack <= 1;
                 end
                 else begin
-                    state <= PROC_NEURON;
+                    state <= PROC;
                     input_ack <= 0;
                 end
             end
