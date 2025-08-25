@@ -24,7 +24,7 @@ module network_processor #(
     logic [$clog2(NR_DEPTH)-1:0] c_neuron_index;
     logic [$clog2(SR_DEPTH)-1:0] c_synapse_index;
     logic c_neuron_we;
-    logic c_input;
+    logic c_accumulate;
 
 
     // (1) Controller (Finite State Machine)
@@ -42,14 +42,18 @@ module network_processor #(
         .c_neuron_index(c_neuron_index),
         .c_synapse_index(c_synapse_index),
         .c_neuron_we(c_neuron_we),
-        .c_input(c_input)
+        .c_accumulate(c_accumulate)
     );
 
     // (2) SRAMs storing neuron states and synaptic weights
 
     logic [NR_WIDTH-1:0] neuron_read;
+    logic [NR_DEPTH-1:0] neuron_write_accu;
+    logic [NR_DEPTH-1:0] neuron_write_proc;
     logic [NR_DEPTH-1:0] neuron_write;
     logic [SR_WIDTH-1:0] synapse_read;
+
+    assign neuron_write = (c_accumulate) ? neuron_write_accu : neuron_write_proc;
 
     sram #(
         .WIDTH(NR_WIDTH),
@@ -86,10 +90,10 @@ module network_processor #(
         .NR_WIDTH(NR_WIDTH),
         .NR_I_WIDTH(NR_I_WIDTH),
         .SR_SYN_WIDTH(SR_SYN_WIDTH)
-    ) neuron_acc (
+    ) neuron_accu (
         .neuron_in(neuron_read),
-        .syn_in(synaptic_weight),
-        .neuron_out(neuron_write)
+        .neuron_out(neuron_write_accu),
+        .syn_in(synaptic_weight)
     );
 
     // (4) the time-multiplexed neuron processor
@@ -103,8 +107,9 @@ module network_processor #(
         .NR_V_FRAC_WIDTH(NR_V_FRAC_WIDTH)
     ) neuron_proc (
         .neuron_in(neuron_read),
-        .neuron_out(neuron_write),
+        .neuron_out(neuron_write_proc),
         .fire(output_occurred)
     );
+
 
 endmodule
