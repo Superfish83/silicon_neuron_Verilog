@@ -46,9 +46,9 @@ module network_processor #(
     // (2) SRAMs storing neuron states and synaptic weights
 
     logic [NR_WIDTH-1:0] neuron_read;
-    logic [NR_DEPTH-1:0] neuron_write_accu;
-    logic [NR_DEPTH-1:0] neuron_write_proc;
-    logic [NR_DEPTH-1:0] neuron_write;
+    logic [NR_WIDTH-1:0] neuron_write_accu;
+    logic [NR_WIDTH-1:0] neuron_write_proc;
+    logic [NR_WIDTH-1:0] neuron_write;
     logic [SR_WIDTH-1:0] synapse_read;
 
     assign neuron_write = (c_accumulate) ? neuron_write_accu : neuron_write_proc;

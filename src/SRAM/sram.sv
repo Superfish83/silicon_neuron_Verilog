@@ -3,16 +3,16 @@ module sram #(
     parameter DEPTH = 256, // Depth (# of words)
     parameter RESET_VALUE = 0
 ) (
-    input wire clk,
-    input wire reset,
+    input logic clk,
+    input logic reset,
 
-    input wire write_enable,
-    input wire [$clog2(DEPTH)-1:0] addr, // address to read/write
-    input wire signed [WIDTH-1:0] write_word, // word to write
+    input logic write_enable,
+    input logic [$clog2(DEPTH)-1:0] addr, // address to read/write
+    input logic signed [WIDTH-1:0] write_word, // word to write
 
-    output reg signed [WIDTH-1:0] word // read output word
+    output logic signed [WIDTH-1:0] word // read output word
 );
-    reg signed [WIDTH-1:0] memory [0:DEPTH-1]; // SRAM memory array
+    logic signed [WIDTH-1:0] memory [0:DEPTH-1]; // SRAM memory array
 
     always @(posedge clk, posedge reset) begin
         if (reset) begin
